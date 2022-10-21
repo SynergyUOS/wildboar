@@ -14,7 +14,7 @@ from RasterArcpy import RasterArcpy
 from sklearn import preprocessing
 from scipy import stats
 
-" llklkl"
+
 #%% Test
 dirpath = r"E:\Dropbox\03.Research_Projects\2022_시나리오 기반 멧돼지 분포 및 서식 연결성 모형개발"
 os.chdir(dirpath)
