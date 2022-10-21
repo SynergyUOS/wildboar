@@ -6,12 +6,12 @@ Created on Sun Aug 28 00:15:30 2022
 """
 
 #%% Necessary Packages
-import os
+import os 
 import numpy as np
 import glob
 from osgeo import gdal
 
-#%% Define Class
+#%% Define Class 
 
 # 폴더로 초기값 받고, 레스터 선택해서 array 처리하기
 
@@ -29,10 +29,24 @@ class RasterGDAL:
         self.GeoTransform = self.RasterOpen.GetGeoTransform()
         self.nodataval = self.band.GetNoDataValue()
         self.R_Arr = self.band.ReadAsArray()
+        self.RasterSize = self.GeoTransform[1]
 
+    # Raster 기초 정보 얻기
+    def getRasterSize(self):
+        Rastersize = self.RasterSize
+        return Rastersize
 
+    def getRasterMinValue(self):
+        RasterMinValue = self.band.GetMinimum()
+        return RasterMinValue
+
+    def getRasterMaxValue(self):
+        RasterMaxValue = self.band.GetMaximum()
+        return RasterMaxValue
+
+    # 
     def FitFileName(self, Inputname):
-        if len(os.path.splitext(Inputname)[1]) != 0:
+        if len(os.path.splitext(Inputname)[1]) != 0: 
             Raster_Name = Inputname
         else:
             Raster_Name = Inputname + ".tif"
@@ -45,10 +59,9 @@ class RasterGDAL:
         RasterArr = self.R_Arr
         return RasterArr, nodataval
 
-
     def write_geotiff(self, saveArray, OutName):
         # extent = os.path.splitext(OutRaster)[1]
-        if len(os.path.splitext(OutName)[1]) != 0:
+        if len(os.path.splitext(OutName)[1]) != 0: 
             Output_Name = OutName
         else:
             Output_Name = OutName + ".tif"
@@ -84,10 +97,10 @@ class RasterGDAL:
     def StackRaster(self, FloderPath, search_criteria):
         dirpath = FloderPath
         search_Con = search_criteria
-        queryExpression = os.path.join(dirpath, search_Con)
+        queryExpression = os.path.join(dirpath, search_Con) 
         ListInput = glob.glob(queryExpression)
         Setlist = list(set(ListInput))
-        SortedList = np.sort(Setlist).tolist()
+        SortedList = np.sort(Setlist).tolist() 
         # Stack
         SatckIndex = np.zeros((len(SortedList), self.R_Arr.shape[0], self.R_Arr.shape[1]))
         # SatckIndex[0]
@@ -102,3 +115,11 @@ class RasterGDAL:
         return SatckIndex, SortedList
 
 #%% Example
+
+# dirpath = r"D:\GA_" 
+# os.chdir(dirpath)
+
+# baseRaster = "b_raster.tif"
+
+# Test = RasterGDAL(baseRaster)
+# Test2 = Test.getRasterSize()
