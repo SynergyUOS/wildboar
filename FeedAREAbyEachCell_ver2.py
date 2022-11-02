@@ -101,7 +101,7 @@ class MinmumDistOneDay:
         # Save/Write Raster
         if str(type(self.RasterArr)) == "<class 'numpy.ndarray'>":
             self.ReadRaster = RasterGDAL(r"results\ProportionOfStay.tif")
-            self.RasterArr, self.noDataVal = self.ReadRaster.RasterToArray()
+            self.RasterArr, self.noDataVal2 = self.ReadRaster.RasterToArray()
             self.ReadRaster.write_geotiff(MinRadius, r"results\MinmumDistOneDay.tif" )
         else:
             self.ReadRaster.write_geotiff(MinRadius, r"results\MinmumDistOneDay.tif" )

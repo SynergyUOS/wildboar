@@ -29,7 +29,7 @@ def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal ):
     ConProp = RasterGDAL(Input_PropTIF)
     ConPropArr, arr_Nodata = ConProp.RasterToArray()
     ConPropArr = np.where( ConPropArr != -9999, ConPropArr, -9999)
-    DEMread.write_geotiff( ConPropArr, os.path.dirname(Input_PropTIF) + r"\ConPropArr.tif")
+    # DEMread.write_geotiff( ConPropArr, os.path.dirname(__file__) + r"\ConPropArr.tif")
 
     # 먹이자원의 에너지 계산
     # 도토리류 에너지 계산

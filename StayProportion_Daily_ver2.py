@@ -41,7 +41,8 @@ class StayProp_Daily:
         FeedRastersPath = os.path.join(self.dirpath, "EnergyRaster")
         # print(FeedRastersPath)
         stackEnergy = ReadEnvs.StackRaster(FeedRastersPath, "*.tif")[0]
-        self.KcalRaster = np.sum( stackEnergy, axis = 0 )
+        KcalRaster = np.sum( stackEnergy, axis = 0 )
+        self.KcalRaster = np.where( self.baseRasterArr != self.noDataVal, KcalRaster, 0 )
         return self.KcalRaster
 
     #### Calulate Proportion Of Stay
@@ -51,7 +52,7 @@ class StayProp_Daily:
         self.BaseArr, self.BASEnoDataVal = Read_BaseRaster.RasterToArray()
 
         NeedKCal = necessaryKCal
-        ConstRasterNeedEnergy = np.where( self.BaseArr != self.BASEnoDataVal, NeedKCal, -9999 )
+        ConstRasterNeedEnergy = np.where( self.BaseArr != self.BASEnoDataVal, NeedKCal, 0)
 
         # Read Feeding Raster
         Kcal_Raster = self.KcalRaster
@@ -59,7 +60,7 @@ class StayProp_Daily:
         # Calculate Restults
         # 비율: 단위면적당 에너지 생산량 / 멧돼지의 1일 필요 에너지량 )
         Result = Kcal_Raster / ConstRasterNeedEnergy
-        StayDailyProp = np.where( self.BaseArr != self.BASEnoDataVal, Result, -9999)
+        StayDailyProp = np.where( self.BaseArr != self.BASEnoDataVal, Result, 0)
 
         # Write Results Raster To tif
         # write_geotiff(Output, ReProduction, DEMBand)

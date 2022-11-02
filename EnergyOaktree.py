@@ -59,11 +59,11 @@ class EnergyOaktree:
         ## sigmoidplus (x, Ax1, Ay2, cProp)
         Pred_BySigmoid = sigmoidplus(self.DEMarr, 600, 900, 0.009)
         # 3.Mask by NoDATA
-        AppNodata = np.where( self.DEMarr != self.DEMnoDataVal , Pred_BySigmoid, -9999 )
+        AppNodata = np.where( self.DEMarr != self.DEMnoDataVal , Pred_BySigmoid, 0 )
         ReProduction = AppNodata * self.PropArr
         # 4.단위면적당 에너지 생산량
         # g생산량 * 단위변환 * 3.87 / 154(도토리 조사기)
-        KcalPerUnitCell = np.where( self.DEMarr != self.DEMnoDataVal, ((ReProduction * 6 * 3.87 )/154) , -9999)  # * 0.82
+        KcalPerUnitCell = np.where( self.DEMarr != self.DEMnoDataVal, ((ReProduction * 6 * 3.87 )/154) , 0)  # * 0.82
 
         # 4. Write PredictResults
         # Write_Raster.by Geotiff

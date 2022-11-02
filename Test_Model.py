@@ -33,8 +33,8 @@ Read_Model = pd.read_csv( Input_Model)
 sub_MCP = Read_MCP[["Date", "Shape_Area"]]
 sub_Model = Read_Model[["Timestamp", "Shape_Area"]]
 
-# sub_MCP[["Type"]] = "MCP"
-# sub_Model[["Type"]] = "Model"
+sub_MCP[["Type"]] = "MCP"
+sub_Model[["Type"]] = "Model"
 
 sub_Model.rename(columns = {'Shape_Area':'B_Area'}, inplace=True)
 Full_pd = pd.concat( [sub_MCP, sub_Model], axis=1)
@@ -43,6 +43,25 @@ graph = sns.jointplot(data=Full_pd, x = Full_pd["Shape_Area"], y = Full_pd["B_Ar
 r, p = stats.pearsonr(Full_pd["Shape_Area"], Full_pd["B_Area"])
 phantom, = graph.ax_joint.plot([], [], linestyle="", alpha=0)
 graph.ax_joint.legend([phantom],['r={:f}, p={:f}'.format(r,p)])
+
+#%%
+Delete_max_pd = Full_pd.drop( index=1, axis=0)
+
+graph = sns.jointplot(data=Delete_max_pd, x = Delete_max_pd["Shape_Area"], y = Delete_max_pd["B_Area"], kind="reg")
+r, p = stats.pearsonr(Delete_max_pd["Shape_Area"], Delete_max_pd["B_Area"])
+phantom, = graph.ax_joint.plot([], [], linestyle="", alpha=0)
+graph.ax_joint.legend([phantom],['r={:f}, p={:f}'.format(r,p)])
+
+
+
+#%%
+Delete_max_pd = Full_pd.drop( index=1, axis=0)
+
+graph = sns.jointplot(data=Delete_max_pd, x = Delete_max_pd["Shape_Area"], y = Delete_max_pd["B_Area"], kind="reg")
+r, p = stats.pearsonr(Delete_max_pd["Shape_Area"], Delete_max_pd["B_Area"])
+phantom, = graph.ax_joint.plot([], [], linestyle="", alpha=0)
+graph.ax_joint.legend([phantom],['r={:f}, p={:f}'.format(r,p)])
+
 
 
 #%%
