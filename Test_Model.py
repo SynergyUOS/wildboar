@@ -1,20 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Thu Oct 13 11:41:34 2022
+'''
+Filename: d:\70_PyCode\Wildboar\Test_Model.py
+Path: d:\70_PyCode\Wildboar
+Created Date: Sunday, October 23rd 2022, 11:38:32 pm
+Author: Istel90
 
-@author: univSEOULGIS
-"""
+Copyright (c) 2022 Lab.Spatial data Science & Planning in University of Seoul
+'''
+
 #%% lists of used package 
 import os 
 import numpy as np
 import pandas as pd
 
-from RasterArcpy import RasterArcpy 
+# from RasterArcpy import RasterArcpy 
 
 from sklearn import preprocessing
 from scipy import stats
 
-" llklkl"
+import sys
+sys.path.append(r"D:\70_PyCode")
+from Wildboar.core import runCore
 #%% Test
 dirpath = r"E:\Dropbox\03.Research_Projects\2022_시나리오 기반 멧돼지 분포 및 서식 연결성 모형개발"
 os.chdir(dirpath)
@@ -23,6 +28,19 @@ os.chdir(dirpath)
 ## Input_DEM 데이터 파일
 Input_MCP = r"MCP_Merge.csv" # Input_DEM = "Clip2DEM.tif"
 Input_Model = r"buffer_Merge.csv" # Input_DEM = "Clip2DEM.tif"
+
+
+#%% Model Test
+dirpath = r"E:\Dropbox\60_Python_Study\99_UtilityCode\임시\WildBoar\Temp"
+os.chdir(dirpath)
+#
+InDEM = r"ModelINPUT\Match_KoreaChina_1arcDEM2.tif"
+InputConProp = r"Jinju_KOFTR31_PA1_Full_MAXENT.tif"
+
+runCore(dirpath, InDEM, InputConProp, 42000)
+
+
+
 
 #%% joinplot
 import seaborn as sns

@@ -16,6 +16,8 @@ from .FeedAREAbyEachCell_ver2 import MinmumDistOneDay
 # 향후 class로 변화 시키기
 # 초기 세팅하는 부분과 자료가 다 있을때 돌리는거로 나눠서 함수 정의
 
+# 제약요인에 대한 모델을 추가로 작성할 수 이도록 수정
+
 def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal ):
     # Read Input
     dirpath = inputPath
@@ -31,11 +33,10 @@ def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal ):
     ConPropArr = np.where( ConPropArr != -9999, ConPropArr, -9999)
     # DEMread.write_geotiff( ConPropArr, os.path.dirname(__file__) + r"\ConPropArr.tif")
 
-    # 먹이자원의 에너지 계산
+    #### Part 1. 단위 공간당 에너지 생산량 계산
     # 도토리류 에너지 계산
     # inputDEM , Path
     Test_Acorn = StayProp_Daily( Input_DEM, dirpath )
-
     # Input_referTable, ProportionRaster
     Test_Acorn.ReadAcorn( Input_referTable, ConPropArr)
     Test_Acorn.readFeedRasters()

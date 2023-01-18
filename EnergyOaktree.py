@@ -8,6 +8,7 @@ Created on Thu Oct  6 20:36:49 2022
 import numpy as np
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from .RasterGDAL import RasterGDAL
 from .sigmoidplus import sigmoidplus
@@ -55,6 +56,10 @@ class EnergyOaktree:
         SSE_pred = (NpFitChecke[:,2]-MeanX_ob)**2
         SST_Ob = (NpFitChecke[:,1]-MeanX_ob)**2
         self.R_quared = np.sum(SSE_pred) / np.sum(SST_Ob)
+        # plot graph
+        # plt.figure(figsize=(10,10))
+        # plt.plot(self.npReferdata[:,0])                
+        
 
         ## sigmoidplus (x, Ax1, Ay2, cProp)
         Pred_BySigmoid = sigmoidplus(self.DEMarr, 600, 900, 0.009)
