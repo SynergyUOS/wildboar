@@ -18,7 +18,7 @@ from .FeedAREAbyEachCell_ver2 import MinmumDistOneDay
 
 # 제약요인에 대한 모델을 추가로 작성할 수 이도록 수정
 
-def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal ):
+def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal, SearchDistance = 8000): # SearchDistance 단위는 m 임 유의할 것
     # Read Input
     dirpath = inputPath
     os.chdir(dirpath)
@@ -47,10 +47,10 @@ def runCore( inputPath, Input_DEM, Input_PropTIF, NeedKcal ):
     # 1일 에너지량 만족 최소 영역 계산
     # 최대거리 8km 셀 사이즈 30m 270
     Cellsize = 30
-    MaxDistCount = int( 8000 / Cellsize) #
-    Test_ClassArea = MinmumDistOneDay(Result_propStay, 270 ) # 향후 270을 MaxDistCount로 변경할 예정임
-    Test_ClassArea.FeedDistancePerCell()
-
+    MaxDistCount = int( SearchDistance / Cellsize) #
+    Test_ClassArea = MinmumDistOneDay(Result_propStay, MaxDistCount ) # 향후 270을 MaxDistCount로 변경할 예정임
+    FinalResult = Test_ClassArea.FeedDistancePerCell()
+    return FinalResult
 
 #%% Test Define
 # dirpath = r"E:\Dropbox\60_Python_Study\99_UtilityCode\WildBoar\Temp"

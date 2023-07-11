@@ -13,6 +13,7 @@ from .RasterGDAL import RasterGDAL
 # from functools import reduce
 
 #%% Define function
+# 거리를 계산해서 1부여 
 def circleKernel(x):
     radius = x
     size = 2 * radius + 1
@@ -70,7 +71,9 @@ class MinmumDistOneDay:
         img_size = PerDay_Nodata.shape
         radius_index = []
         for IterRadius in range(1, self.MaxRadius):
-            print(f"radius = {IterRadius}")
+            # 전체 프로세스의 10% 단위별로 진행상황을 알려줌
+            if IterRadius % (int(self.MaxRadius/10)) == 0:
+                print(f"Processing: {round(IterRadius/self.MaxRadius*100, 2)}%, radius = {IterRadius}")    
             # kernel 정의
             Kernel = circleKernel(IterRadius)
             #외곽부 확장하기
