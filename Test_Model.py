@@ -21,7 +21,28 @@ sys.path.append(r"D:\70_PyCode\TempPythonCode")
 sys.path.append(r"D:\70_PyCode")
 
 from Wildboar.core import runCore
+from RasterGDAL import RasterGDAL
 from AstarBasic import AStar
+
+
+#%% Sample Run 
+dirpath = r"D:\70_PyCode\Wildboar\SampleDATA"
+os.chdir(dirpath)
+#
+InDEM = r"Match_KoreaChina_1arcDEM2.tif"
+InputConProp = r"Jinju_KOFTR31_PA1_Full_MAXENT.tif"
+TestResult = runCore(dirpath, InDEM, InputConProp, 42000, SearchDistance = 1000 )
+
+#%% 
+dirpath = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data"
+os.chdir(dirpath)
+#### Input 
+#
+InDEM = r"북한산DEM.tif"
+InputConProp = r"TempProp.tif"
+TestResult = runCore(dirpath, InDEM, InputConProp, 42000, SearchDistance = 1000 )
+
+
 #%% Test
 dirpath = r"E:\Dropbox\03.Research_Projects\2022_시나리오 기반 멧돼지 분포 및 서식 연결성 모형개발"
 os.chdir(dirpath)
@@ -64,23 +85,26 @@ def circleKernel(x):
                 mask[i, j] = 1
     return mask
 
+
 # 특정셀에서 지나갈 수 없는 부분을 반영하여 만족하는 거리만큼의 목적지 좌표를 찾는 함수
 # 주의: 이동이 불가능한 지역에서 시작할 수 없음
 def GetRoutesConList(Startidx, ConRadius, ObstacleGrid):
+    StartP_arr = np.array(Startidx)
     # 거리 1 늘린 만큼의 목적 포인트 설정
     RawCircle = circleKernel(ConRadius)
     ExpandCircle = circleKernel(int(ConRadius + 1))
     ExpandRawCircle = np.zeros(ExpandCircle.shape)
     ExpandRawCircle[1:-1, 1:-1] = RawCircle
     GoalGrid = ExpandCircle - ExpandRawCircle
-    # print(f"GoalGrid: \n {GoalGrid}")
+    # print(ExpandCircle.shape)
     #### 적용을 위한 상대좌표 만들기
-    origin_idx = GoalGrid.shape[0] //2 , GoalGrid.shape[1] //2
+    origin_idx = ExpandCircle.shape[0]//2, ExpandCircle.shape[1]//2
     ref_idx = np.array(Startidx) - np.array(origin_idx)
     Raw_ref_destIdx = np.nonzero(GoalGrid) + np.array(ref_idx).reshape(2,1)
+    # print(f"Raw_ref_destIdx: {Raw_ref_destIdx}")
     # 범위를 넘어가는 경우수정
     ref_destinationIdx = np.where(Raw_ref_destIdx < 0, 0, Raw_ref_destIdx )
-    ref_destinationIdx = np.where(ref_destinationIdx >= GoalGrid.shape[0], GoalGrid.shape[0], ref_destinationIdx )
+    ref_destinationIdx = np.where(ref_destinationIdx >= ObstacleGrid.shape[0], ObstacleGrid.shape[0], ref_destinationIdx )
     ####
     GoalPointidx = np.transpose(ref_destinationIdx)
     GoalIndexList = [] # 모든 목적지 좌표(튜플) 리스트
@@ -96,7 +120,6 @@ def GetRoutesConList(Startidx, ConRadius, ObstacleGrid):
         else:
             GoalIndexList.append(i)
     # print(f"GoalIndexList: {GoalIndexList}")
-
     #### 각 목적지 까지의 경로 찾기
     ListRoutes_NeedReduce = [] 
     ListConRoutes = [] 
@@ -128,26 +151,142 @@ def GetRoutesConList(Startidx, ConRadius, ObstacleGrid):
             PathDistance = PathDistance - getDistance
             newRoutes = newRoutes[:-1]
             TupleRouteAndDistance = (newRoutes, PathDistance)
-            print(newRoutes)
+            # print(newRoutes)
         ListConRoutes.append(TupleRouteAndDistance)
     # print(f"ListConRoutes: {ListConRoutes}")
     inner_coordinates = [coordinates for coordinates, _ in ListConRoutes]
     # print(f"{len(inner_coordinates)}, inner_coordinates: {inner_coordinates}")
     Fin_DestIdxs = []
     for Fin_DestIdx in inner_coordinates:
-        Fin_DestIdxs.append(Fin_DestIdx[-1])
+        Fin_DestIdxs.append( Fin_DestIdx[-1] )
+    delTuple_Fin_DestIdxs = [[item for item in sublist] for sublist in Fin_DestIdxs]
     # print(len(Fin_DestIdxs))
-    return inner_coordinates, Fin_DestIdxs
+    return inner_coordinates, delTuple_Fin_DestIdxs
 
 
-#%% Sample Run
-# test run
-grid2 = np.diag(np.ones(30)) 
-grid2[4,4] = 0 
-grid2
+#%%
+dirpath = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent"
+os.chdir(dirpath)
+#### Input 
+ 
+InDEM = r"DEM_Extent.tif"
+InputConProp = r"TempPropModify_Extent.tif"
+TestResult = runCore(dirpath, InDEM, InputConProp, 42000, SearchDistance = 1000 )
 
-start_P = (8,3)
-Test = GetRoutesConList(start_P, 7, grid2) 
+
+#%% Sample 
+def GetResultsProp(Startidx, ConRadius, ObstacleGrid, InputConProp):
+    StartP_arr = np.array(Startidx)
+    # 거리 1 늘린 만큼의 목적 포인트 설정
+    RawCircle = circleKernel(ConRadius)
+    CircleToindex = np.argwhere(RawCircle == 1)
+    # print(f"CircleToindex: {CircleToindex}")
+    CircleCenter = np.array((RawCircle.shape[0]//2, RawCircle.shape[1]//2))
+    ExpandCircleCenter = np.tile(CircleCenter, (CircleToindex.shape[0], 1))
+    Ref_kernelIdx = CircleToindex - ExpandCircleCenter   
+    ExpandStartP = np.tile(Startidx, (CircleToindex.shape[0], 1))
+    Ref_TrueKernel = ExpandStartP + Ref_kernelIdx
+    CLipCoord = np.clip(Ref_TrueKernel, [0, 0], [ObstacleGrid.shape[0], ObstacleGrid.shape[0]])
+    ToList_ClipCoord = CLipCoord.tolist()
+    # print(f"ToList_ClipCoord: {ToList_ClipCoord}")
+    #### 장애물 그리드에 목적지가 있는 경우 제외
+    ObstacleGrididx = np.argwhere(ObstacleGrid == 1)
+    for i in ObstacleGrididx:
+        for coord in CLipCoord:
+            if np.all(coord == i):
+                # print(f"Remove{coord.tolist()}")
+                ToList_ClipCoord.remove(coord.tolist())
+    ClipCoord = np.array(ToList_ClipCoord) 
+    unique_CLipCoord = np.unique(ClipCoord, axis=0)          
+    # print(f"CLipCoord: {len(CLipCoord)}")
+    # print(f"unique_CLipCoord: {len(unique_CLipCoord)}")
+    # print(f"unique_CLipCoord: {unique_CLipCoord}")
+    sumProp = 0
+    for coord in unique_CLipCoord:
+        getProp = InputConProp[coord[0], coord[1]]
+        # print(f"getProp: {getProp}")
+        sumProp += getProp
+    print(f"sumProp: {sumProp}")
+    return unique_CLipCoord
+
+
+
+CostMap = r"FillBuilding_Extent.tif"
+# BoundaryMap = r"Reclass_공원경계.tif"
+MinmumRadius = r"Radious_Extent.tif"
+ResultProp = r".\results\ProportionOfStay.tif"
+
+Read_CostMap = RasterGDAL(CostMap).RasterToArray()[0]
+Read_MinmumRadius = RasterGDAL(MinmumRadius).RasterToArray()[0]
+Read_TempProp = RasterGDAL(InputConProp).RasterToArray()[0]
+Read_ResultProp = RasterGDAL(ResultProp).RasterToArray()[0]
+
+
+indexarg = np.argwhere(Read_MinmumRadius != 0)
+indexarg[1000]
+
+Startidx = tuple(indexarg[1000])
+getRadius = int(Read_MinmumRadius[Startidx[0], Startidx[1]])
+
+
+# print(Startidx, getRadius)
+Paths = GetResultsProp(tuple(Startidx), getRadius-5, Read_CostMap, Read_ResultProp)
+
+
+emptyArr = np.zeros(Read_ResultProp.shape)
+for i in Paths:
+    emptyArr[i[0], i[1]] = 1
+
+SaveToimg = RasterGDAL(ResultProp).write_geotiff(emptyArr, r".\results\TestResult2.tif")
+
+
+#%%
+# 좌표 어레이의 차이
+a = np.array([1,1])
+b = np.array([3,-5])
+C = b - a
+# C의 차원알고 싶음
+
+
+
+
+
+#%%
+CostMap = r"Fill_Building.tif"
+BoundaryMap = r"Reclass_공원경계.tif"
+MinmumRadius = r".\results\fill_minmum.tif"
+
+Read_CostMap = RasterGDAL(CostMap).RasterToArray()[0]
+Read_BoundaryMap= RasterGDAL(BoundaryMap).RasterToArray()[0]
+Read_MinmumRadius = RasterGDAL(MinmumRadius).RasterToArray()[0]
+
+getIndex = np.argwhere(Read_BoundaryMap == 1)
+getIndex
+
+# start_P = tuple(getIndex[50])
+# start_P
+
+# Test = GetRoutesConList(start_P, 5, Read_CostMap)
+
+allCells = []
+runCount = 0
+for Startidx in getIndex:
+    runCount += 1
+    if len(getIndex) % runCount == 0:
+        print(f"Processing: {round(runCount/len(getIndex)*100, 2)}%")
+    getRadius = int(Read_MinmumRadius[Startidx[0], Startidx[1]])
+    # Error 무시
+    try:
+        Paths = GetRoutesConList(tuple(Startidx), getRadius, Read_CostMap)
+    except:
+        pass    
+    allCells += Paths[1]
+
+len(allCells)
+
+SaveToCSV = pd.DataFrame(allCells)
+SaveToCSV.to_csv(r".\results\AllCells.csv", index=False)
+#%%  
 
 
 
@@ -298,11 +437,6 @@ for i in GoalPointidx.tolist():
 BaseRadius = 3
 Startidx = (3,4)
 
-def GetRoutesEachCells(startidx, goalidx):
-    List_needCut = []
-    ConRoutes = []
-    for i in 
-    
 List_needCut = []
 ConRoutes = []
 for i in checkIdx_list:
