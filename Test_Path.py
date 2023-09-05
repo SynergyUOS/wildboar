@@ -272,13 +272,11 @@ ZerosArr = np.zeros(BaseSize)
 for i in range(0, Testrun.shape[0]):
     ZerosArr[Testrun[i][0]][Testrun[i][1]] = 1
 
-np.savetxt("D:/70_PyCode/Wildboar/SampleDATA/results/Path.csv", ZerosArr, delimiter=",")
-
-
 
 
 #%%
 
 baseRaster = r"D:\70_PyCode\Wildboar\SampleDATA\results\MinmumDistOneDay.tif"
-readRaster = RasterGDAL(baseRaster).RasterToArray()
+readRaster = RasterGDAL(baseRaster)
 
+readRaster.write_geotiff( ZerosArr, "D:/70_PyCode/Wildboar/SampleDATA/results/Path.tif")
