@@ -16,7 +16,6 @@ sys.path.append(r"D:\70_PyCode")
 from RasterGDAL import RasterGDAL
 
 
-
 #%% 완료된 함수정의
 def ToSelectProp(SurroundProp):
     resistances = SurroundProp
@@ -27,7 +26,7 @@ def ToSelectProp(SurroundProp):
     current_ratios = inverse_resistances / total_inverse_resistance
     return current_ratios
 
-
+# 경로 하나 만들기
 def FeedingPropPath(StartCoord, CostMap, FeedingPropMap, MaxDistance = 1500, cell_size = 10):
     # 종료기준1: 먹이를 다 먹었다
     Con_Feeding = 1 # Propotion
@@ -76,8 +75,8 @@ def FeedingPropPath(StartCoord, CostMap, FeedingPropMap, MaxDistance = 1500, cel
         MoveResult = np.vstack((MoveResult, Selected_Coord))
         # Set Next Start Coord
         MovedStartCoord = MoveResult[-1]
-                
-        # 종료기준 계산 
+
+        #### 종료기준 계산 
         if MoveResult.tolist().count(MoveResult[-1].tolist()) > 1:
             # print("중복좌표", Selected_Coord, MoveResult.tolist().count(MoveResult[-1].tolist()))
             continue
@@ -103,10 +102,10 @@ def FeedingPropPath(StartCoord, CostMap, FeedingPropMap, MaxDistance = 1500, cel
     return EachPath
 
 
+#### 경로 1000개 도출
 def GetPathRatio(GetStartCoord, CostMAP, FeedingMAP, MaxDistance = 1500, cell_size = 30, MaximumPahts = 1000):
     BaseSize = CostMAP.shape
     MaxPahts = MaximumPahts
-    PathRaster = np.zeros(BaseSize)
     FullPaths = np.zeros((MaxPahts, BaseSize[0], BaseSize[1]))
     CountPahts = 0
     while CountPahts < MaxPahts:
@@ -120,8 +119,10 @@ def GetPathRatio(GetStartCoord, CostMAP, FeedingMAP, MaxDistance = 1500, cell_si
         # if CountPahts % (MaxPahts/10) == 0:
             # print(f"전체 {MaxPahts}개의 결과 중 현재{CountPahts}개의 경로가 생성되었습니다.")
     # PropotionPath
+    GetCount = np.sum(FullPaths, axis=0)
     GetRatio = np.sum(FullPaths, axis=0) / MaxPahts
-    return GetRatio
+    return GetRatio, GetCount
+
 
 def SaveAsRaster(InputArray, OutputPath, InputRasterName):
     print("SaveAsRaster, Not Yet")
@@ -130,35 +131,45 @@ def SaveAsRaster(InputArray, OutputPath, InputRasterName):
 
 #%%
 #
-baseRaster = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\FillBuilding_Extent.tif"
-FeedingRaster = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\results\ProportionOfStay.tif"
+BasePath = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\jaeyeon_Extent"
+os.chdir(BasePath)
 
-readRaster = RasterGDAL(baseRaster)
-CannotMove = np.where(readRaster.RasterToArray()[0] == 1, 9999, 0)
+Startraster = r"StartPoint.tif"
+FeedingRaster = r".\results\ProportionOfStay.tif"
+CostMap = r"CostMap_Temp.tif"
 
+readRaster = RasterGDAL(Startraster)
+# CannotMove = np.where(readRaster.RasterToArray()[0] == 1, 9999, 0)
+#
 ReadRaster_Feeding = RasterGDAL(FeedingRaster)
 FeedingArr = ReadRaster_Feeding.RasterToArray()[0]
+#
+readCost_Imp = RasterGDAL(CostMap)
+# TempArr = readCost_Imp.RasterToArray()[0] * -1
+# ReverseTempArr = TempArr + 1
+# TempCost = np.where(readRaster.RasterToArray()[0] == 1, 9999, ReverseTempArr)
+TempCost = readCost_Imp.RasterToArray()[0]
 
-readCost_Imp = RasterGDAL( r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\NDVI_Extent.tif")
-TempArr = readCost_Imp.RasterToArray()[0] * -1
-ReverseTempArr = TempArr + 1
 
-TempCost = np.where(readRaster.RasterToArray()[0] == 1, 9999, ReverseTempArr)
-
+#%%
 # TestFunc
-Startraster = RasterGDAL( r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\Boundary_Extent.tif")
-StartCoords = Startraster.RasterToArray()[0]
-GetStartP = np.argwhere(StartCoords == 1)
-GetStartCoord = GetStartP[1000]
+# Startraster = RasterGDAL( r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\Boundary_Extent.tif")
+StartCoords = readRaster.RasterToArray()[0] 
+GetStartP = np.argwhere(StartCoords == 1) 
+GetStartCoord = GetStartP[1000] 
 
-Sub_GetStartP = GetStartP[0:100]
+Sub_GetStartP = GetStartP[0:100] 
 
-
+# 
 BaseStack = np.zeros((len(GetStartP), TempCost.shape[0], TempCost.shape[1]))
+BaseStack_Sum = np.zeros((len(GetStartP), TempCost.shape[0], TempCost.shape[1]))
 for i in range(0, len(GetStartP)):
     GetStartCoord = GetStartP[i]
     TempArray = GetPathRatio(GetStartCoord, TempCost, FeedingArr, MaxDistance = 1500, cell_size = 10, MaximumPahts = 1000)
-    BaseStack[i] = np.where(TempArray == 0, 1, TempArray)
+    RatioArray = TempArray[0]
+    # BaseStack[i] = np.where(RatioArray == 0, 1, RatioArray)
+    BaseStack[i] = RatioArray
+    BaseStack_Sum[i] = TempArray[1]
     # 진행상황의 1% 단위로 출력
     if i % (len(GetStartP)/10) == 0:
         # 현재 시간을 얻어옵니다.
@@ -167,14 +178,20 @@ for i in range(0, len(GetStartP)):
         formatted_time = current_time.strftime("%H:%M:%S") 
         print(f"전체 {len(GetStartP)}개의 결과 중 현재{i}번째 경로가 생성되었습니다.", "현재 시간:", formatted_time)
 
-NonZeros = np.where(BaseStack == 1, 0, BaseStack)
+# 빈도수의 합으로 정리 
+ToAllRatio = np.sum(BaseStack, axis=0)
+SumToAllRatio = np.sum(BaseStack_Sum, axis=0)
+
+#%%
+# save np.array to csv
+np.savetxt(r".\results\AllRatio.csv", ToAllRatio, delimiter=",")
+np.savetxt(r".\results\SumToAllRatio.csv", SumToAllRatio, delimiter=",")
 
 
  
 # 합으로 빈도수 확인 
 ToAllRatio = np.sum(NonZeros, axis=0)
 ToFin = np.where(ToAllRatio == len(GetStartP), 0, ToAllRatio)
-
 
 # Upscale = ToAllRatio * 1000000
 ToFin = np.where(ToAllRatio == 1, 0, ToAllRatio)
@@ -186,23 +203,13 @@ ZeroToNull = np.where(ToFin == 0, None, ToFin)
 # Save As Tiff
 readCost_Imp.write_geotiff(ToFin, r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\results\ToFin.tif")
 
-readCost_Imp.write_geotiff(ToAllRatio, r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\Sample_Extent\results\TestFinRun.tif")
+readCost_Imp.write_geotiff(ToAllRatio, r".\results\TestFinRun20230913.tif")
+
+readCost_Imp.write_geotiff(SumToAllRatio, r".\results\TestFinRun20230913_Sum.tif")
 
 # Testrun = GetPathRatio(GetStartCoord, TempCost, FeedingArr, MaxDistance = 1500, cell_size = 30, MaximumPahts = 10)
 # print(Testrun)
 # print(np.unique(Testrun, return_counts=True))
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -221,9 +228,9 @@ ZerosArr = np.zeros(BaseSize)
 
 
 
+
+
 #%% 1000개의 경로 도출 
-
-
 
 
 MaximumPahts = 5

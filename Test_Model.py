@@ -59,6 +59,17 @@ InDEM = r"ModelINPUT\Match_KoreaChina_1arcDEM2.tif"
 InputConProp = r"ModelINPUT\Jinju_KOFTR31_PA1_Full_MAXENT.tif"
 TestResult = runCore(dirpath, InDEM, InputConProp, 42000, SearchDistance = 1000 )
 
+#%%
+dirpath = r"E:\Dropbox\03.Research_Projects\2023_첨단기술을 이용한 멧돼지 서식지 분석 및 모니터링\99_Data\jaeyeon_Extent"
+os.chdir(dirpath)
+
+#### Input 
+## Input_DEM 데이터 파일
+InDEM = r"DEM_.tif"
+InputConProp = r"TempProportion.tif"
+
+TestResult = runCore(dirpath, InDEM, InputConProp, 42000, SearchDistance = 1000 )
+
 
 #%% Define Function
 #### Get Goalindex / GetModifiedGoalIndex
