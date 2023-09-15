@@ -7,6 +7,7 @@ Author: Istel
 Copyright (c) 2023 Lab.Synergy
 '''
 #%%
+import os
 import numpy as np
 import datetime
 import sys
@@ -88,7 +89,6 @@ def FeedingPropPath(StartCoord, CostMap, FeedingPropMap, MaxDistance = 1500, cel
             Con_Distance = Con_Distance - Get_MovedDist    
         # print("먹이 만족도", Con_Feeding)
         # print("최대이동거리", Con_Distance)
-        
         EachPath = MoveResult
     # print("먹이 만족도", Con_Feeding)
     # print("최대이동거리", Con_Distance)
